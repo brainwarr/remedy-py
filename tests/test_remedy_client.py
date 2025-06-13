@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright: (c) 2021, Brian Reid
 # MIT License
 #  
@@ -6,9 +5,10 @@
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from remedy_py.RemedyAPIClient import RemedyClient
-from mock import patch
 import unittest
+from unittest.mock import patch
+
+from remedy_py.RemedyAPIClient import RemedyClient
 
 # Changelog
 ###############################################################################
@@ -24,7 +24,7 @@ import unittest
 ####
 
 def mock_build_request_headers(obj):
-    token = "foo"
+    token = "foo"  # noqa: S105
     return {
             "content-type": "application/json",
             "Authorization": "AR-JWT " + token
@@ -84,7 +84,7 @@ def mock_advanced_query(obj, form_name, query, return_values):
                     ]
                 }
             }
-    mock_response =   response  
+    mock_response =   response
     return mock_response, 200
 
 
@@ -109,7 +109,6 @@ class TestRemedyClient(unittest.TestCase):
             "Service_Type": "User Service Restoration",
             "z1D_Action": "CREATE"
         }
-        RETURN_VALUES = ["Incident Number", "Request ID"]
 
         response, status_code = self.client.create_form_entry(self.form_name, ENTRY_TEMPLATE)
         assert(status_code == 201)
@@ -141,23 +140,14 @@ class TestRemedyClient(unittest.TestCase):
         response, status_code = self.client.delete_form_entry(self.form_name, req_id)
         assert(status_code == 204)
 
-    
+
     @patch('remedy_py.RemedyAPIClient.RemedyClient.advanced_query', mock_advanced_query)
     def test_advanced_query(self, *args, **kwargs):
         req_id = "INC0000000001"
         form_name = 'HPD:Help Desk'
-        response, status_code = self.client.advanced_query(form_name, "'Incident Number'=\"{}\"".format(req_id), ["Entry ID"])
+        response, status_code = self.client.advanced_query(form_name, f"'Incident Number'=\"{req_id}\"", ["Entry ID"])
         assert(status_code == 200)
-        
 
-    @patch('remedy_py.RemedyAPIClient.RemedyClient.attach_file_to_incident', mock_attach_file_to_incident)
-    def attach_file_to_incident(self, *args, **kwargs):
-        assert(status_code == 204)
 
-    @abc.abstractmethod
-    def add_worklog_to_incident(self, *args, **kwargs):
-        assert(status_code == 200)
-        
-
-if __name__ == '__main__': 
+if __name__ == '__main__':
     unittest.main()

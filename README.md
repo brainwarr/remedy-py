@@ -1,25 +1,29 @@
 # Overview
+
 `remedy-py` is a Python package used to interface with the BMC Remedy REST API.
 My search for a development tool to facilitate easy interactions with the Remedy API
 in a Python program didn't turn up any results that suited my needs, so I decided to create
-my own and open-source it. Your feedback and contributions are welcome (see [Contributing](#Contributing)), so
+my own and open-source it. Your feedback and contributions are welcome (see [Contributing](#contributing)), so
 that we can make this package useful to as many people as possible.
 
 ## Installation
+
 You may install `remedy-py` directly from [PyPI](https://pypi.org/project/remedy-py/), or via pip:
-`pip install remedy-py`. 
+`pip install remedy-py`.
 
 ## Usage
 
 ### Import the Package
+
 Once you have the package installed, import the RemedyClient class for use in your Python program as follows:
 `from remedy_py.RemedyAPIClient import RemedyClient`
 
 ### Instantiate a Client
+
 The `RemedyClient` constructor has three required arguments: `host`, `user`, and `password`.
 Optional positional arguments include `verify`, `proxies`, and `timeout`.
 Once you have instantiated a client, authentication with the Remedy API
-is automatically handled for you in the constructor based on the username 
+is automatically handled for you in the constructor based on the username
 and password provided. Any subsequent calls to the API will include a user-specific
 jwt in the headers to let Remedy know who you are.
 
@@ -103,7 +107,7 @@ req_id = incident_id
 tmpdir = tempfile.gettempdir()
 file_log = f"log_{runId}_{runNo}.txt"
 
-updated_incident, status_code = client.attach_file_to_incident(req_id=incident_id, 
+updated_incident, status_code = client.attach_file_to_incident(req_id=incident_id,
     filepath=tmpdir, filename=file_log, details="Helix Control-M Log file")
 ```
 

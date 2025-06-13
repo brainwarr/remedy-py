@@ -1,22 +1,21 @@
-# -*- coding: utf-8 -*-
 # Copyright: (c) 2021, Brian Reid
 # MIT License
-# Permission is hereby granted, free of charge, to any person obtaining a 
+# Permission is hereby granted, free of charge, to any person obtaining a
 # copy Of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
-# and/or sell copies of the Software, and to permit persons to whom the 
+# and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 # IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 # USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # pragma pylint: disable=unused-argument, no-self-use, undefined-variable
@@ -27,24 +26,33 @@
 ###############################################################################
 # 2023 01 08 # Daniel Companeetz      # Attachments and worklogs to incidents
 
-from os import sep, SEEK_END
-from os.path import getsize
 import json
-import requests
+from os import SEEK_END, sep
+from os.path import getsize
 
-# Load constant values for API Calls
-from remedy_py.RemedyConstants import *
+import requests
 
 # Load Abstract Class for checking implementations
 from remedy_py.interface.remedy_api import RemedyAPI
 
+# Load constant values for API Calls
+from remedy_py.RemedyConstants import (
+    DEFAULT_HTTP_PORT,
+    DEFAULT_HTTPS_PORT,
+    DEFAULT_TIMEOUT,
+    HTTP_BASE_URL,
+    HTTPS_BASE_URL,
+    REQUEST_PREFIX,
+)
+
+
 class RemedyClient(RemedyAPI):
-    """ 
-    Client for the Remedy ITSM API. Object will inherit values and methods (see __init__) 
+    """
+    Client for the Remedy ITSM API. Object will inherit values and methods (see __init__)
 
     """
 
-    def __init__(self, host, username, password, port=None, verify=True, proxies={}, 
+    def __init__(self, host, username, password, port=None, verify=True, proxies={},
             timeout=DEFAULT_TIMEOUT, prefix=REQUEST_PREFIX):
         """
         Initializes the Client class.
@@ -68,7 +76,7 @@ class RemedyClient(RemedyAPI):
         :type password: int
         :param prefix: path for the requests (after /api before the form_name). Defaults from constants.
         :type password: str
-        
+
         :return: the response content and http status code as a tuple
         :rtype: tuple(json, int)
         """
@@ -103,7 +111,7 @@ class RemedyClient(RemedyAPI):
         url = self.base_url + "/jwt/login"
         data = {"username": self.username, "password": self.password}
 
-        response = requests.request("POST", url, data=data, headers=self.authHeaders, 
+        response = requests.request("POST", url, data=data, headers=self.authHeaders,
                             verify=self.verify, proxies=self.proxies, timeout=self.timeout)
         response.raise_for_status()
         token = response.content
@@ -137,7 +145,7 @@ class RemedyClient(RemedyAPI):
         # override default and add new headers as needed
         if new_headers is not None:
             for key in new_headers.keys():
-                reqHeaders[key.lower()] = new_headers[key] 
+                reqHeaders[key.lower()] = new_headers[key]
 
         # check to see if content-type has been passed and add if not
         has_content_type = False
@@ -145,7 +153,7 @@ class RemedyClient(RemedyAPI):
             if 'content-type' == key.lower():
                 has_content_type = True
                 break
-        
+
         if not has_content_type:
             reqHeaders['content-type'] = 'application/json'
 
@@ -185,7 +193,7 @@ class RemedyClient(RemedyAPI):
     def create_form_entry(self, form_name, values, headers=None, return_values=[], timeout=None):
         """
         create_form_entry is a member function used to take a payload
-        and form name and use it to create a new entry on the Remedy system. 
+        and form name and use it to create a new entry on the Remedy system.
         The function returns: a tuple with the response content as json and the http status code.
 
         :param form_name: name of the form to add an entry for
@@ -205,8 +213,8 @@ class RemedyClient(RemedyAPI):
             field_list = ["Incident Number"]
         else:
             field_list = ', '.join(return_values)
-        
-        url = self.base_url + self.prefix + "/{}?fields=values({})".format(form_name, field_list)
+
+        url = self.base_url + self.prefix + f"/{form_name}?fields=values({field_list})"
 
         if headers is None:
             reqHeaders = self.reqHeaders
@@ -221,7 +229,7 @@ class RemedyClient(RemedyAPI):
         response = requests.request("POST", url, json=entry, headers=reqHeaders, verify=self.verify,
                             proxies=self.proxies, timeout=timeout)
         response.raise_for_status()
-        
+
         return response.json(), response.status_code
 
 
@@ -238,10 +246,10 @@ class RemedyClient(RemedyAPI):
         :return: the response content and http status code as a tuple
         :rtype: tuple(json, int)
         """
-        url = self.base_url + self.prefix + "/{}/{}".format(form_name, req_id)
+        url = self.base_url + self.prefix + f"/{form_name}/{req_id}"
         response = requests.request("GET", url, headers=self.reqHeaders, verify=self.verify,
                                     proxies=self.proxies, timeout=self.timeout)
-        response.raise_for_status()                                    
+        response.raise_for_status()
 
         return response.json(), response.status_code
 
@@ -261,16 +269,16 @@ class RemedyClient(RemedyAPI):
         :return: the response content and http status code as a tuple
         :rtype: tuple(json, int)
         """
-        
+
         entry = {
             "values": values
         }
-        url = self.base_url + self.prefix + "/{}/{}".format(form_name, req_id)
+        url = self.base_url + self.prefix + f"/{form_name}/{req_id}"
 
         response = requests.request("PUT", url, json=entry, headers=self.reqHeaders, verify=self.verify,
                                     proxies=self.proxies, timeout=self.timeout)
         response.raise_for_status()
-        
+
         # Remedy returns an empty 204 for form updates.
         # get the updated incident and return it with the update status code
         status_code = response.status_code
@@ -294,7 +302,7 @@ class RemedyClient(RemedyAPI):
         :return: the response content and http status code as a tuple
         :rtype: tuple(json, int)
         """
-        url = self.base_url + self.prefix + "/{}/{}".format(form_name, req_id)
+        url = self.base_url + self.prefix + f"/{form_name}/{req_id}"
         response = requests.request("DELETE", url, headers=self.reqHeaders, verify=self.verify,
                                     proxies=self.proxies, timeout=self.timeout)
         response.raise_for_status()
@@ -328,27 +336,27 @@ class RemedyClient(RemedyAPI):
             fields = ""
         else:
             field_list = ', '.join(return_values)
-            fields = "fields=values({})&".format(field_list)
+            fields = f"fields=values({field_list})&"
 
-        url = self.base_url + self.prefix + "/{}?{}q={}".format(form_name, fields, query)
+        url = self.base_url + self.prefix + f"/{form_name}?{fields}q={query}"
 
         response = requests.request("GET", url, headers=self.reqHeaders, verify=self.verify,
                                     proxies=self.proxies, timeout=self.timeout)
-        response.raise_for_status()                                    
+        response.raise_for_status()
 
         return response.json(), response.status_code
 
 
-    def attach_file_to_incident(self, req_id, filepath, filename, form_name = 'HPD:Help Desk', content_type='text/plain', 
+    def attach_file_to_incident(self, req_id, filepath, filename, form_name = 'HPD:Help Desk', content_type='text/plain',
                     details=None, view_access='Public'):
         """
         attach_file_to_incident is a member function used to attach a file to an incident
         based on a form name and request ID the user knows (such as the incident ID)
         (using req_id to keep compatibility with prior methods)
-        
-        The function returns: a tuple with the updated incident as json (dict), and 
+
+        The function returns: a tuple with the updated incident as json (dict), and
                             the http status code (should 204, as the content is empty).
-        
+
         This method may be made general for any form, but since I could not test it, I use the HPD:Help Desk a default form
 
         :param req_id: the request ID of the desired entry. Will be assumed as the value the Customer will know.
@@ -371,7 +379,7 @@ class RemedyClient(RemedyAPI):
         """
         # Using the INC ID relevant to the user to retrieve Entry ID from form to use on modify entry
 
-        incident, status_code = self.advanced_query(form_name, "'Incident Number'=\"{}\"".format(req_id), ["Entry ID"])
+        incident, status_code = self.advanced_query(form_name, f"'Incident Number'=\"{req_id}\"", ["Entry ID"])
 
         entry_id = incident['entries'][0]['values']['Entry ID']
 
@@ -381,7 +389,7 @@ class RemedyClient(RemedyAPI):
                 "z1D_View_Access": "{}".format(view_access if view_access is not None else "Public"),
                 "z1D_Activity_Type": "General Information",
                 "z1D_Secure_Log": "Yes",
-                "z2AF_Act_Attachment_1": "{}".format(filename)
+                "z2AF_Act_Attachment_1": f"{filename}"
                 }
 
         # Create the files multipart submission
@@ -391,15 +399,15 @@ class RemedyClient(RemedyAPI):
         try:
             size = getsize(filepath+sep+filename)
             with open(f'{filepath+sep+filename}', 'rb') as file:
-                # Do not read more than 10MB of the file 
+                # Do not read more than 10MB of the file
                 if size >= 10000000 :
                     # File is bigger than 10MB, so read the last 10MB
                     file.seek(-10000000, SEEK_END)  # Note minus sign
                 # Read the remaining of the file (or all of it)
                 content = file.read()
-        # bare except to avoid errors and put something on the content. Otherwise meaningless.        
-        except:
-            content = 'File {} could not be read'.format(filepath+sep+filename)
+        # Catch specific exceptions instead of bare except
+        except OSError as e:
+            content = f'File {filepath+sep+filename} could not be read: {str(e)}'
 
         # Add json to the multipart form request
         files = {}
@@ -408,7 +416,7 @@ class RemedyClient(RemedyAPI):
         files['entry'] = (None, json.dumps({'values': values}).encode('utf-8'), 'application/json')
         files['attach-z2AF_Act_Attachment_1'] = (filename, content, content_type)
 
-        url = self.base_url + self.prefix + "/{}/{}".format(form_name, entry_id)
+        url = self.base_url + self.prefix + f"/{form_name}/{entry_id}"
 
         # Send only the authorization header for content-type to be set as multipart by the requests module
         reqHeaders = {'Authorization': self.reqHeaders['Authorization']}
@@ -416,7 +424,7 @@ class RemedyClient(RemedyAPI):
                                      proxies=self.proxies, timeout=self.timeout)
 
         response.raise_for_status()
-        
+
         # Remedy returns an empty 204 for form updates.
         # get the updated incident and return it with the update status code
         status_code = response.status_code
@@ -439,19 +447,19 @@ class RemedyClient(RemedyAPI):
         :type values: dict
         :param payload: Any extra options you want to include on the incident, defaults to {}
         :type payload: dict, optional
-        
+
         :return: the response content and http status code as a tuple
         :rtype: tuple(json, int)
         """
         # Retrieve Entry ID from form to use on modify entry
         form_name="HPD:Help Desk"
-        incident, status_code = self.advanced_query(form_name, "'Incident Number'=\"{}\"".format(req_id), ["Entry ID"])
+        incident, status_code = self.advanced_query(form_name, f"'Incident Number'=\"{req_id}\"", ["Entry ID"])
 
         entry_id = incident['entries'][0]["values"]["Entry ID"]
 
         # Create attachment URL and values
-       
-        values = { "values": 
+
+        values = { "values":
             {
                 "z1D_Details": "{}".format(details if details is not None else "No details entered"),
                 "z1D_View_Access": "{}".format(view_access or "Public"),
@@ -460,13 +468,13 @@ class RemedyClient(RemedyAPI):
             }
         }
 
-        url = self.base_url + self.prefix + "/{}/{}".format(form_name, entry_id)
+        url = self.base_url + self.prefix + f"/{form_name}/{entry_id}"
 
         response = requests.request("PUT", url, json=values, headers=self.reqHeaders, verify=self.verify,
                                      proxies=self.proxies, timeout=self.timeout)
 
         response.raise_for_status()
-        
+
         # Remedy returns an empty 204 for form updates.
         # get the updated incident and return it with the update status code
         status_code = response.status_code

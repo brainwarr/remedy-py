@@ -1,6 +1,45 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "remedy_py"
+version = "1.1.0"
+description = "A python package used to interface with the BMC Remedy ITSM REST API"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Brian Reid" }]
+dependencies = ["requests"]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.6",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/breid1313/remedy-py"
+
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.6",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "F",    # pyflakes
+    "E4",   # pycodestyle
+    "E7",   # pycodestyle
+    "E9",   # pycodestyle
+    "UP",   # pyupgrade
+    "I",    # linting for import statements
+    # "TRY", # linting for try/except statements
+    "PERF", # performance issues
+    # "ANN",  # type annotations
+    "S",    # security issues
+]
+ignore = [
+    "S101", # assert rule was flagging tests
+]

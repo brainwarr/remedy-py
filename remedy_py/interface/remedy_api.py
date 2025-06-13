@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright: (c) 2021, Brian Reid, Ryan Gordon
 # MIT License
 #  
@@ -6,16 +5,10 @@
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import sys
 import abc
 
-# There is a difference between have abstract base classes are handled in py 2 and 3
 # In python 3 we can directly access abc.ABC and inherit from that
-# In python 2 we must create the ABC class using abc.ABCMeta
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:
-    ABC = abc.ABCMeta
+ABC = abc.ABC
 
 class RemedyAPI(ABC):
 

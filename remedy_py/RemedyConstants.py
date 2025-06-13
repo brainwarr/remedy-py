@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright: (c) 2021, Brian Reid, Ryan Gordon
 # MIT License
 #  
@@ -22,5 +21,7 @@ REQUEST_PREFIX = "/arsys/v1/entry"
 DEFAULT_TIMEOUT = 30
 
 # Interpreted values
-HTTP_BASE_URL = lambda host, port: "http://{0}:{1}/api".format(host, str(port))
-HTTPS_BASE_URL = lambda host, port: "https://{0}:{1}/api".format(host, str(port))
+def HTTP_BASE_URL(host, port):
+    return f"http://{host}:{str(port)}/api"
+def HTTPS_BASE_URL(host, port):
+    return f"https://{host}:{str(port)}/api"
