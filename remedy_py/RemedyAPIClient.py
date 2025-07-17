@@ -314,7 +314,7 @@ class RemedyClient(RemedyAPI):
         return response_json, response.status_code
 
 
-    def advanced_query(self, form_name, query, return_values=None):
+    def advanced_query(self, form_name, query, return_values=None, limit=None, offset=None):
         """
         advanced_query is a member function used to gather form data
         based on a form name and request ID the user knows (such as the incident ID)
@@ -322,10 +322,14 @@ class RemedyClient(RemedyAPI):
 
         :param form_name: name of the form to query
         :type form_name: str
-        :param req_id: the request ID of the desired entry
-        :type req_id: str
+        :param query: the query to execute
+        :type query: str
         :param return_values: list of field names to return from the created entry
         :type return_values: list
+        :param limit: maximum number of records to return for pagination
+        :type limit: int
+        :param offset: number of records to skip for pagination
+        :type offset: int
 
         :return: the response content and http status code as a tuple
         :rtype: tuple(json, int)
@@ -338,7 +342,14 @@ class RemedyClient(RemedyAPI):
             field_list = ', '.join(return_values)
             fields = f"fields=values({field_list})&"
 
-        url = self.base_url + self.prefix + f"/{form_name}?{fields}q={query}"
+        # Build pagination parameters
+        pagination_params = ""
+        if limit is not None:
+            pagination_params += f"&limit={limit}"
+        if offset is not None:
+            pagination_params += f"&offset={offset}"
+
+        url = self.base_url + self.prefix + f"/{form_name}?{fields}q={query}{pagination_params}"
 
         response = requests.request("GET", url, headers=self.reqHeaders, verify=self.verify,
                                     proxies=self.proxies, timeout=self.timeout)

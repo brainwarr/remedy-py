@@ -6,7 +6,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from remedy_py.RemedyAPIClient import RemedyClient
 
@@ -66,7 +66,7 @@ def mock_update_form_entry(obj, form_name, req_id, values):
 def mock_delete_form_entry(obj, form_name, req_id):
     return {}, 204
 
-def mock_advanced_query(obj, form_name, query, return_values):
+def mock_advanced_query(obj, form_name, query, return_values=None, limit=None, offset=None):
     response = {"entries":[
         {"values":
             {"Entry ID":"INC000000000001"},
@@ -147,6 +147,72 @@ class TestRemedyClient(unittest.TestCase):
         form_name = 'HPD:Help Desk'
         response, status_code = self.client.advanced_query(form_name, f"'Incident Number'=\"{req_id}\"", ["Entry ID"])
         assert(status_code == 200)
+
+    @patch('remedy_py.RemedyAPIClient.RemedyClient.advanced_query', mock_advanced_query)
+    def test_advanced_query_with_limit(self, *args, **kwargs):
+        req_id = "INC0000000001"
+        form_name = 'HPD:Help Desk'
+        response, status_code = self.client.advanced_query(
+            form_name, 
+            f"'Incident Number'=\"{req_id}\"", 
+            ["Entry ID"], 
+            limit=10
+        )
+        assert(status_code == 200)
+
+    @patch('remedy_py.RemedyAPIClient.RemedyClient.advanced_query', mock_advanced_query)
+    def test_advanced_query_with_offset(self, *args, **kwargs):
+        req_id = "INC0000000001"
+        form_name = 'HPD:Help Desk'
+        response, status_code = self.client.advanced_query(
+            form_name, 
+            f"'Incident Number'=\"{req_id}\"", 
+            ["Entry ID"], 
+            offset=20
+        )
+        assert(status_code == 200)
+
+    @patch('remedy_py.RemedyAPIClient.RemedyClient.advanced_query', mock_advanced_query)
+    def test_advanced_query_with_limit_and_offset(self, *args, **kwargs):
+        req_id = "INC0000000001"
+        form_name = 'HPD:Help Desk'
+        response, status_code = self.client.advanced_query(
+            form_name, 
+            f"'Incident Number'=\"{req_id}\"", 
+            ["Entry ID"], 
+            limit=10,
+            offset=20
+        )
+        assert(status_code == 200)
+
+    @patch('remedy_py.RemedyAPIClient.requests.request')
+    def test_pagination_url_construction(self, mock_request):
+        # Mock the response
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"entries": []}
+        mock_response.status_code = 200
+        mock_response.raise_for_status.return_value = None
+        mock_request.return_value = mock_response
+        
+        # Call advanced_query with pagination parameters
+        form_name = 'HPD:Help Desk'
+        query = "'Status' = \"Active\""
+        return_values = ["Entry ID", "Status"]
+        limit = 10
+        offset = 20
+        
+        self.client.advanced_query(form_name, query, return_values, limit, offset)
+        
+        # Verify the URL was constructed correctly
+        mock_request.assert_called_once()
+        call_args = mock_request.call_args
+        url = call_args[1]['url'] if 'url' in call_args[1] else call_args[0][1]
+        
+        # Verify pagination parameters are in the URL
+        assert "limit=10" in url
+        assert "offset=20" in url
+        assert "fields=values(Entry ID, Status)" in url
+        assert f"q={query}" in url
 
 
 if __name__ == '__main__':
