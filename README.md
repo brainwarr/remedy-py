@@ -66,6 +66,31 @@ Provide the following parameters:
 - form_name: name of the form to query
 - query: properly formatted query (no validation by the function). You may want to implement code injection verification protocols.
 - return_values: list of value/keys to return from the form (returns the complete form if None (default))
+- limit: (optional) maximum number of records to return for pagination
+- offset: (optional) number of records to skip for pagination
+
+#### Pagination Support
+
+The `advanced_query` method now supports pagination through `limit` and `offset` parameters:
+
+``` python
+# Get first 10 records
+contacts, status_code = client.advanced_query(
+    "PSAP Contacts",
+    "'Status' = \"Active\" AND 'FCC ID' != $NULL$ AND 'Testing' = $NULL$ AND 'State' = \"CA\"",
+    ["State", "FCC ID"],
+    limit=10
+)
+
+# Get next 10 records (records 11-20)
+contacts, status_code = client.advanced_query(
+    "PSAP Contacts", 
+    "'Status' = \"Active\" AND 'FCC ID' != $NULL$ AND 'Testing' = $NULL$ AND 'State' = \"CA\"",
+    ["State", "FCC ID"],
+    limit=10,
+    offset=10
+)
+```
 
 ### Add a worklog to an incident
 
